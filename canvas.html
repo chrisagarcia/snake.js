@@ -12,120 +12,128 @@
 </body>
 <script>
 
-	function drawSquareGrid(canvasObject, squareSize=15, fillType='fill') {
-
-		let context = canvasObject.getContext('2d');
-
-		let lineWidth = 1
-		context.lineWidth = lineWidth;
-
-		let suggestedSpace = Math.floor(squareSize / 4);
-		let gridDivide = suggestedSpace + squareSize + lineWidth;
-
-	    let columnNumber = Math.floor((canvasObject.clientWidth - 1) / gridDivide);
-	    let rowNumber = Math.floor((canvasObject.clientHeight - 1) / gridDivide);
-
-	    let rect_start_x = 1;
-	    for (let i = 0; i < columnNumber; i++) {
-
-	    	let rect_start_y = 1;
-	        for (let j = 0; j < rowNumber; j++) {
-
-	            context.rect(rect_start_x, rect_start_y, squareSize, squareSize);
-	            if (fillType === 'fill') {
-	            	context.fill();
-	            } else if (fillType === 'stroke') {
-	            	context.stroke();
-	            }
-
-	            rect_start_y += gridDivide;
-	        }
-	        rect_start_x += gridDivide;
-	    };
-	};
-
+	class Coordinate {
+		constructor(x, y) {
+			this.x = x;
+			this.y = y;
+		}
+	}
 
 	class BoxData {
-		constructor(centerX, centerY, rectParams, gridCoordinates) {
-			this.centerX = centerX;
-			this.centerY = centerY;
+		constructor(centerPoint, rectParams, gridCoordinates) {
+			this.centerPoint = centerPoint;
 			this.rectParams = rectParams;
 			this.gridCoordinates = gridCoordinates;
 		}
 	}
 
-	class BoundingBox {
-		constructor(startPixelX, startPixelY, pixelWidth, pixelDepth, borderWidth=5) {
-			this.startPixelX = startPixelX;
-			this.startPixelY = startPixelY;
-			this.pixelWidth = pixelWidth;
-			this.pixelDepth = pixelDepth;
+	class GameGridDisplay {
+		constructor(
+			startPoint,
+			columns,
+			rows,
+			borderWidth=5,
+			gridBoxSize=10,
+			gridSpacing=3,
+		) {
+			this.startPoint = startPoint;
+			this.columns = columns;
+			this.rows = rows;
 			this.borderWidth = borderWidth;
+			this.gridBoxSize = gridBoxSize;
+			this.gridSpacing = gridSpacing;
+
+
+			this.pixelWidth = borderWidth*2 + gridSpacing*2 + columns*gridBoxSize + (columns*gridSpacing - 1);
+			this.pixelDepth = borderWidth*2 + gridSpacing*2 + rows*gridBoxSize + (rows*gridSpacing - 1);
 		}
 
 		drawBorder(canvasContext) {
 			canvasContext.lineWidth = this.borderWidth;
-			canvasContext.rect(this.startPixelX, this.startPixelY, this.pixelWidth, this.pixelDepth);
+			canvasContext.rect(
+				this.startPoint.x,
+				this.startPoint.y,
+				this.pixelWidth,
+				this.pixelDepth
+			);
 			canvasContext.stroke();
 			canvasContext.lineWidth = 1;
 		}
 
-		createGridDataArray(boxSize) {
-			let boxArray = new Array();
+		drawGrid(canvasContext) {
+			let gridDataArray = this.createGridDataArray();
+			gridDataArray.forEach((box) => {
+				let rectX, rectY, rectWidth, rectDepth;
+				[rectX, rectY, rectWidth, rectDepth] = box.rectParams;
+				canvasContext.rect(rectX, rectY, rectWidth, rectDepth);
+				canvasContext.stroke();
+			})
+		}
 
-			let gridSpacing = 2;
-			let gridStartPixelX = this.startPixelX + this.borderWidth + gridSpacing;
-			let gridStartPixelY = this.startPixelY + this.borderWidth + gridSpacing;
-			let pixelGridSpaceX = pixelWidth - (this.borderWidth*2 + gridSpacing*2);
-			let pixelGridSpaceY = pixelDepth - (this.borderWidth*2 + gridSpacing*2);
-			let columnBoxes = Math.floor(pixelGridSpaceX / boxSize);
-			let rowBoxes = Math.floor(pixelGridSpaceY / boxSize);
+		drawContents(canvasContext, contentArray) {
+			contentArray.forEach((contentData) => {
+				contentData.gridCoordinate
+			})
+		}
 
-			getCenter = () => {
+		createGridDataArray() {
+			let gridDataArray = new Array();
 
-			}
+			// start pixel for the actual grid. takes into account buffer from border
+			let gridStartPixelX = this.startPoint.x + this.borderWidth + this.gridSpacing;
+			let gridStartPixelY = this.startPoint.y + this.borderWidth + this.gridSpacing;
+
+			// gets the middle pixel (or one below if the side length is even)
+			let s = this.gridBoxSize;
+			function getMidpoint(startPixel) {return startPixel + Math.floor(s / 2)}
 
 			let xCorner = gridStartPixelX;
-			for (let i=0; i<columnBoxes; i++) {
+			let gridCoordX = 0;
+
+			for (let i=0; i<this.columns; i++) {
+
 				let yCorner = gridStartPixelY;
-				for (let j=0; j<rowBoxes; j++) {
-					boxArray.push(new BoxData(
-						centerX=
-					));
+				let gridCoordY = this.rows - 1;
+
+				for (let j=0; j<this.rows; j++) {
+					
+					let currentBox = new BoxData(
+						new Coordinate(getMidpoint(xCorner), getMidpoint(yCorner)),
+						[xCorner, yCorner, this.gridBoxSize, this.gridBoxSize],
+						new Coordinate(gridCoordX, gridCoordY)
+					);
+
+					gridDataArray.push(currentBox);
+
+					yCorner += this.gridBoxSize + this.gridSpacing;
+					gridCoordY -= 1;
 				}
+
+				xCorner += this.gridBoxSize + this.gridSpacing;
+				gridCoordX += 1;
+
 			}
 
+			return gridDataArray
 		}
 	}
-
-
-	function createGridData(boundingBox, squareSize) {
-		let gridData = new Array(this.startPoint);
-		
-
-		/*
-		
-		boxObject
-			center(canvas_x, canvas_y)
-			rectParams(canvas_x, canvas_y, squareSize, squareSize)
-			highLevelCoord(grid_x, grid_y)
-
-		*/
-
-
-		return gridData
-	};
-
 
 	const canvas = document.getElementById("c");
 
 	if (canvas.getContext) {
 		let context = canvas.getContext("2d");
 
-	    // drawSquareGrid(canvas, 17, 'fill');
+	    let gameGridDisplay = new GameGridDisplay(
+			startPoint=new Coordinate(30, 30),
+			columns=25,
+			rows=25,
+			borderWidth=5,
+			gridBoxSize=11,
+			gridSpacing=3,
+		);
 
-	    let boundingBox = new BoundingBox(30, 30, 300, 300);
-	    boundingBox.draw(context);
+	    gameGridDisplay.drawBorder(context);
+		gameGridDisplay.drawGrid(context);
 
 	} else {
 		console.log("something wrong");
