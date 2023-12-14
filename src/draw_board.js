@@ -1,3 +1,4 @@
+
 class Coordinate {
 	constructor(x, y) {
 		this.x = x;
@@ -5,10 +6,9 @@ class Coordinate {
 	}
 }
 
-class BoxData {
-	constructor(centerPoint, rectParams, gridCoordinates) {
+class GridBox {
+	constructor(centerPoint, gridCoordinates) {
 		this.centerPoint = centerPoint;
-		this.rectParams = rectParams;
 		this.gridCoordinates = gridCoordinates;
 	}
 }
@@ -18,89 +18,56 @@ class GameGridDisplay {
 		startPoint,
 		columns,
 		rows,
-		borderWidth=5,
-		bufferWidth=3,
-		gridBoxSize=10,
-		gridSpacing=3,
+		gridSpaceSize=30,
+		lineWeight=2,
+
 	) {
 		this.startPoint = startPoint;
 		this.columns = columns;
 		this.rows = rows;
-		this.borderWidth = borderWidth;
-		this.bufferWidth = bufferWidth;
-		this.gridBoxSize = gridBoxSize;
-		this.gridSpacing = gridSpacing;
-
-
-		this.pixelWidth = borderWidth*2 + bufferWidth*2 + columns*gridBoxSize + (columns*gridSpacing - 1);
-		this.pixelDepth = borderWidth*2 + gridSpacing*2 + rows*gridBoxSize + (rows*gridSpacing - 1);
-	}
-
-	drawBorder(canvasContext) {
-		canvasContext.lineWidth = this.borderWidth;
-		canvasContext.rect(
-			this.startPoint.x,
-			this.startPoint.y,
-			this.pixelWidth,
-			this.pixelDepth
-		);
-		canvasContext.stroke();
+		this.gridSpaceSize = gridSpaceSize;
+		this.lineWeight = lineWeight;
 	}
 
 	drawGrid(canvasContext) {
-		let gridDataArray = this.createGridDataArray();
-		canvasContext.lineWidth = 3;
 
-		gridDataArray.forEach((box) => {
-			let rectX, rectY, rectWidth, rectDepth;
-			[rectX, rectY, rectWidth, rectDepth] = box.rectParams;
-			canvasContext.rect(rectX, rectY, rectWidth, rectDepth);
-			canvasContext.stroke();
-		})
+		canvasContext.lineWidth = this.lineWeight;
+
+		let verticalLineLength = this.rows*this.gridSpaceSize;
+		let horizontalLineLength = this.columns*this.gridSpaceSize;
+
+		for (let i=0; i<=this.columns; i++) {
+			let xPixel = this.startPoint.x + i*this.gridSpaceSize;
+
+			canvasContext.moveTo(xPixel, this.startPoint.y);
+			canvasContext.lineTo(xPixel, this.startPoint.y + verticalLineLength);
+		}
+		
+		for (let i=0; i<=this.rows; i++) {
+			let yPixel = this.startPoint.y + i*this.gridSpaceSize;
+
+			canvasContext.moveTo(this.startPoint.x, yPixel);
+			canvasContext.lineTo(this.startPoint.x + horizontalLineLength, yPixel);
+		}
+
+		canvasContext.stroke();
 	}
 
-	drawContents(canvasContext, contentArray) {
-		contentArray.forEach((contentData) => {
-			contentData.gridCoordinate
-		})
-	}
-
-	createGridDataArray() {
+	createGridDataArray(canvasContext) {
 		let gridDataArray = new Array();
 
-		// start pixel for the actual grid. takes into account buffer from border
-		let gridStartPixelX = this.startPoint.x + this.borderWidth + this.gridSpacing;
-		let gridStartPixelY = this.startPoint.y + this.borderWidth + this.gridSpacing;
-
-		// gets the middle pixel (or one below if the side length is even)
-		let s = this.gridBoxSize;
-		function getMidpoint(startPixel) {return startPixel + Math.floor(s / 2)}
-
-		let xCorner = gridStartPixelX;
-		let gridCoordX = 0;
-
 		for (let i=0; i<this.columns; i++) {
-
-			let yCorner = gridStartPixelY;
-			let gridCoordY = this.rows - 1;
-
-			for (let j=0; j<this.rows; j++) {
+			for (let j=0; j<this.columns; j++) {
 				
-				let currentBox = new BoxData(
-					new Coordinate(getMidpoint(xCorner), getMidpoint(yCorner)),
-					[xCorner, yCorner, this.gridBoxSize, this.gridBoxSize],
-					new Coordinate(gridCoordX, gridCoordY)
+				let gridCenter = new Coordinate(
+					this.startPoint.x + Math.floor(this.gridSpaceSize*.5) + i*this.gridSpaceSize,
+					this.startPoint.y + Math.floor(this.gridSpaceSize*.5) + j*this.gridSpaceSize
 				);
 
-				gridDataArray.push(currentBox);
-
-				yCorner += this.gridBoxSize + this.gridSpacing;
-				gridCoordY -= 1;
+				gridDataArray.push(
+					new GridBox(gridCenter, new Coordinate(i, j))
+				);
 			}
-
-			xCorner += this.gridBoxSize + this.gridSpacing;
-			gridCoordX += 1;
-
 		}
 
 		return gridDataArray
@@ -113,16 +80,16 @@ if (canvas.getContext) {
 	let context = canvas.getContext("2d");
 
     let gameGridDisplay = new GameGridDisplay(
-		startPoint=new Coordinate(30, 30),
-		columns=25,
-		rows=25,
-		borderWidth=5,
-		gridBoxSize=20,
-		gridSpacing=3,
+		startPoint=new Coordinate(10, 10),
+		columns=20,
+		rows=20,
+		gridSpaceSize=25,
 	);
 
-    gameGridDisplay.drawBorder(context);
 	gameGridDisplay.drawGrid(context);
+	console.log(
+		gameGridDisplay.createGridDataArray(context)
+	);
 
 } else {
 	console.log("something wrong");
