@@ -53,7 +53,7 @@ class GameGridDisplay {
 		canvasContext.stroke();
 	}
 
-	createGridDataArray(canvasContext) {
+	createGridDataArray() {
 		let gridDataArray = new Array();
 
 		for (let i=0; i<this.columns; i++) {
@@ -74,7 +74,23 @@ class GameGridDisplay {
 	}
 }
 
+class SnakeSegment {
+	constructor(
+		segmentAhead,
+		gridPosition,
+		segmentSize = 3,
+	) {
+		this.segmentAhead = segmentAhead;
+		this.gridPosition = gridPosition;
+		this.segmentSize = segmentSize;
+	}
+
+	drawSegment()
+}
+
+
 const canvas = document.getElementById("c");
+const passToConsole = {};
 
 if (canvas.getContext) {
 	let context = canvas.getContext("2d");
@@ -87,9 +103,7 @@ if (canvas.getContext) {
 	);
 
 	gameGridDisplay.drawGrid(context);
-	console.log(
-		gameGridDisplay.createGridDataArray(context)
-	);
+	passToConsole.gridData = gameGridDisplay.createGridDataArray(context);
 
 } else {
 	console.log("something wrong");
