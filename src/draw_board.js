@@ -7,9 +7,17 @@ class Coordinate {
 }
 
 class GridBox {
-	constructor(centerPoint, gridCoordinates) {
+	constructor(
+		centerPoint,
+		gridCoordinates
+	) {
 		this.centerPoint = centerPoint;
 		this.gridCoordinates = gridCoordinates;
+		this.content = undefined;
+	}
+
+	setContent(content) {
+		this.content = content
 	}
 }
 
@@ -20,7 +28,6 @@ class GameGridDisplay {
 		rows,
 		gridSpaceSize=30,
 		lineWeight=2,
-
 	) {
 		this.startPoint = startPoint;
 		this.columns = columns;
@@ -52,49 +59,92 @@ class GameGridDisplay {
 
 		canvasContext.stroke();
 	}
+}
 
-	createGridDataArray() {
-		let gridDataArray = new Array();
+class snakeHead {
+	constructor() {}
 
-		for (let i=0; i<this.columns; i++) {
-			for (let j=0; j<this.columns; j++) {
-				
-				let gridCenter = new Coordinate(
-					this.startPoint.x + Math.floor(this.gridSpaceSize*.5) + i*this.gridSpaceSize,
-					this.startPoint.y + Math.floor(this.gridSpaceSize*.5) + j*this.gridSpaceSize
-				);
+	moveHead(direction, gridData) {
+		let directionMap = {
+			'l': (c) => {
+				c.x -= 1;
+				return c
+			},
+			'u': (c) => {
+				c.y -= 1;
+				return c
+			},
+			'r': (c) => {
+				c.x += 1;
+				return c
+			},
+			'd': (c) => {
+				c.y += 1;
+				return c
+			},
+		};
 
-				gridDataArray.push(
-					new GridBox(gridCenter, new Coordinate(i, j))
-				);
-			}
-		}
-
-		return gridDataArray
+		let moveToCoordinate = directionMap[direction];
 	}
 }
 
-class SnakeSegment {
-	constructor(
-		segmentAhead,
-		gridPosition,
-		segmentSize = 3,
-	) {
-		this.segmentAhead = segmentAhead;
-		this.gridPosition = gridPosition;
+class SnakeChain extends Array {
+	constructor(segmentSize=5) {
 		this.segmentSize = segmentSize;
+		this.length = 1;
+		this.headGridPosition = new Coordinate(1, 1);
 	}
 
-	drawSegment()
+	addSegment() {
+		this.unshift(this.headGridPosition);
+	}
 }
+
+function createGridDataArray(gameGridDisplay) {
+	let gridDataArray = new Array();
+
+	for (let i=0; i<gameGridDisplay.columns; i++) {
+		for (let j=0; j<gameGridDisplay.columns; j++) {
+			
+			let gridCenter = new Coordinate(
+				gameGridDisplay.startPoint.x + Math.floor(gameGridDisplay.gridSpaceSize*.5) + i*gameGridDisplay.gridSpaceSize,
+				gameGridDisplay.startPoint.y + Math.floor(gameGridDisplay.gridSpaceSize*.5) + j*gameGridDisplay.gridSpaceSize
+			);
+
+			gridDataArray.push(
+				new GridBox(gridCenter, new Coordinate(i, j))
+			);
+		}
+	}
+
+	return gridDataArray
+}
+
 
 
 const canvas = document.getElementById("c");
+
+const gameParameters = {
+	'columnNumber': 20,
+	'rowNumber': 20,
+	
+};
+const gridData = {};
+
+const snakeChain = undefined;
+const snakeHead = undefined;
+
+// events
 const passToConsole = {};
 
 if (canvas.getContext) {
+
+	// Initializing Game
+
+	// creating context to draw to canvas
 	let context = canvas.getContext("2d");
 
+	// creating grid with passed-in parameters
     let gameGridDisplay = new GameGridDisplay(
 		startPoint=new Coordinate(10, 10),
 		columns=20,
@@ -102,8 +152,18 @@ if (canvas.getContext) {
 		gridSpaceSize=25,
 	);
 
+	// initializing the grid data variable
+	createGridDataArray(context).forEach(
+		(gridBox) => {gridData[gridBox.gridCoordinates] = gridBox}
+	)
+
+	// draw the grid
 	gameGridDisplay.drawGrid(context);
-	passToConsole.gridData = gameGridDisplay.createGridDataArray(context);
+
+	// on game-start
+	while (gameState.onGoing) {
+		
+	}
 
 } else {
 	console.log("something wrong");
