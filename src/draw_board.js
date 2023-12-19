@@ -100,6 +100,11 @@ class SnakeChain extends Array {
 	}
 }
 
+class GameState {
+	onGoing = true;
+}
+
+
 function createGridDataArray(gameGridDisplay) {
 	let gridDataArray = new Array();
 
@@ -129,10 +134,12 @@ const gameParameters = {
 	'rowNumber': 20,
 	
 };
+
+const gameState = new GameState();
 const gridData = {};
 
-const snakeChain = undefined;
-const snakeHead = undefined;
+const chain = undefined;
+const head = undefined;
 
 // events
 const passToConsole = {};
@@ -162,7 +169,18 @@ if (canvas.getContext) {
 
 	// on game-start
 	while (gameState.onGoing) {
-		
+		let loopStartTime = Date.now();
+
+
+		console.log(gridData);
+		gameState.onGoing = false;
+
+
+		let loopEndTime = Date.now();
+		let loopDiff = loopEndTime - loopStartTime;
+		if (!loopDiff < 1000) {
+			await new Promise(r => setTimeout(r, loopDiff));
+		}
 	}
 
 } else {
