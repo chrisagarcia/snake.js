@@ -100,8 +100,27 @@ class SnakeChain extends Array {
 	}
 }
 
-class GameState {
-	onGoing = true;
+class GameLoop {
+	constructor() {
+		ongoing = true;
+	}
+	
+	run() {
+		while (this.onGoing) {
+			let loopStartTime = Date.now();
+	
+	
+			console.log(gridData);
+			gameState.onGoing = false;
+	
+	
+			let loopEndTime = Date.now();
+			let loopDiff = loopEndTime - loopStartTime;
+			if (!loopDiff < 1000) {
+				setTimeout(() => {}, loopDiff);
+			}
+		}
+	}
 }
 
 
@@ -168,20 +187,7 @@ if (canvas.getContext) {
 	gameGridDisplay.drawGrid(context);
 
 	// on game-start
-	while (gameState.onGoing) {
-		let loopStartTime = Date.now();
-
-
-		console.log(gridData);
-		gameState.onGoing = false;
-
-
-		let loopEndTime = Date.now();
-		let loopDiff = loopEndTime - loopStartTime;
-		if (!loopDiff < 1000) {
-			await new Promise(r => setTimeout(r, loopDiff));
-		}
-	}
+	
 
 } else {
 	console.log("something wrong");
